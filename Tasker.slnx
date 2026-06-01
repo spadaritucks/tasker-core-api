@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Itens de Solução/">
+    <File Path=".gitignore" />
+  </Folder>
+  <Project Path="Tasker.API/Tasker.API.csproj" />
+  <Project Path="Tasker.Application/Tasker.Application.csproj" />
+  <Project Path="Tasker.Domain/Tasker.Domain.csproj" />
+  <Project Path="Tasker.Infrastructure/Tasker.Infrastructure.csproj" />
+</Solution>
