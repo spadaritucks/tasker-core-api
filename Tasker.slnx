@@ -2,8 +2,16 @@
   <Folder Name="/Itens de Solução/">
     <File Path=".gitignore" />
   </Folder>
-  <Project Path="Tasker.API/Tasker.API.csproj" />
-  <Project Path="Tasker.Application/Tasker.Application.csproj" />
+  <Project Path="Tasker.API/Tasker.API.csproj">
+    <BuildDependency Project="Tasker.Application/Tasker.Application.csproj" />
+    <BuildDependency Project="Tasker.Infrastructure/Tasker.Infrastructure.csproj" />
+  </Project>
+  <Project Path="Tasker.Application/Tasker.Application.csproj">
+    <BuildDependency Project="Tasker.Domain/Tasker.Domain.csproj" />
+  </Project>
   <Project Path="Tasker.Domain/Tasker.Domain.csproj" />
-  <Project Path="Tasker.Infrastructure/Tasker.Infrastructure.csproj" />
+  <Project Path="Tasker.Infrastructure/Tasker.Infrastructure.csproj">
+    <BuildDependency Project="Tasker.Domain/Tasker.Domain.csproj" />
+    <BuildDependency Project="Tasker.Application/Tasker.Application.csproj" />
+  </Project>
 </Solution>
