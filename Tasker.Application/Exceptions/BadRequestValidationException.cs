@@ -1,4 +1,5 @@
-﻿namespace Tasker.API.Middleware;
+﻿namespace Tasker.Application.Exceptions;                                                                                                                                          
+
 
 public class BadRequestValidationException : TaskerException
 {

@@ -1,6 +1,7 @@
 ﻿using System.Net;
 
-namespace Tasker.API.Middleware;
+namespace Tasker.Application.Exceptions;                                                                                                                                          
+
 
 public abstract class TaskerException : Exception
 {

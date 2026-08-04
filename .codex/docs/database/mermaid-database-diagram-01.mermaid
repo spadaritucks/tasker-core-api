@@ -1,0 +1,56 @@
+﻿---
+config:
+  layout: elk
+---
+erDiagram
+USER ||--o{ NOTIFICATION : receives
+USER ||--o{ SESSION : creates
+USER ||--o{ EVENT : organizes
+USER ||--o{ PLANNER : owns
+EVENT ||--o{ PLANNER : contains
+
+USER {
+string id
+string name
+string email
+datetime created_at
+}
+
+NOTIFICATION {
+string id
+string user_id
+string user_email
+string title
+string content
+boolean is_read
+datetime read_at
+}
+
+SESSION {
+string id
+string user_id
+string access_token
+datetime created_at
+datetime expires_in
+string device_id
+string device_info
+boolean revoke
+}
+
+EVENT {
+string id
+string planner_id
+string title
+string description
+datetime date_start
+datetime date_end
+string google_html_link
+string sync_status
+string created_at
+}
+
+PLANNER {
+string id
+string google_calendar_id
+string user_id
+}
