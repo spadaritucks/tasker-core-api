@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Tasker.Application.DTOs.Global;
 using Tasker.Application.Exceptions;
 
@@ -8,6 +10,17 @@ namespace Tasker.Application.Filters;
 
 public class ExceptionFilter : IExceptionFilter
 {
+    private readonly ILogger<ExceptionFilter> _logger;
+    private readonly IHostEnvironment _environment;
+
+    public ExceptionFilter(
+        ILogger<ExceptionFilter> logger,
+        IHostEnvironment environment)
+    {
+        _logger = logger;
+        _environment = environment;
+    }
+
     public void OnException(ExceptionContext context)
     {
         if (context.Exception is TaskerException taskerException)
@@ -45,18 +58,27 @@ public class ExceptionFilter : IExceptionFilter
 
     private void ThrowUnknownError(ExceptionContext context)
     {
+        _logger.LogError(
+            context.Exception,
+            "Erro não tratado em {Path}",
+            context.HttpContext.Request.Path);
+
         context.HttpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
         context.Result = new ObjectResult(new GlobalApiResponseBody<object?>
             {
                 Success = false,
-                Data = { },
+                Data = null,
                 Error = new GlobalErrorApiBody
                 {
                     Code = context.HttpContext.Response.StatusCode.ToString(),
-                    Message = "erro desconhecido",
-                    Details = []
+                    Message = context.Exception.Message,
+                    Details = [context.Exception.ToString()]
+                },
+                Metadata = new MetaDataApiBody
+                {
+                    Path = context.HttpContext.Request.Path.ToString(),
+                    Timestamp = DateTime.UtcNow
                 }
-
             }
         );
     }

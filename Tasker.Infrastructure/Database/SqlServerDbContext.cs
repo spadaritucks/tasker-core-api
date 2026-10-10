@@ -15,6 +15,9 @@ public class SqlServerDbContext : DbContext
     
     public DbSet<User> User { get; set; }
     public DbSet<Sessions> Sessions { get; set; }
+    
+    public DbSet<Events> Events { get; set; }
+    public DbSet<GoogleCalendarSessions> GoogleCalendarSessions { get; set; }
 
     
 }

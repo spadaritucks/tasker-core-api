@@ -40,7 +40,7 @@ namespace Tasker.Application.Usecases.GoogleClientUsecase
             _sessionRepository = sessionRepository;    
         }
 
-        public async Task<OAuth2GoogleValidatorResponse> Execute(
+        public async Task<AuthValidationResponse> Execute(
             string idToken, 
             string clientId, 
             string deviceId,
@@ -100,7 +100,7 @@ namespace Tasker.Application.Usecases.GoogleClientUsecase
                 
                 await _sessionRepository.AddAsync(session, cancellationToken);  
                 
-                return new OAuth2GoogleValidatorResponse
+                return new AuthValidationResponse()
                 {
                     AccessToken = token.AccessToken,
                     TokenType = token.TokenType,

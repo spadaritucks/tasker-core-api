@@ -7,7 +7,7 @@ namespace Tasker.Application.Usecases.GoogleClientUsecase
 {
     public interface IGoogleClientUsecase
     {
-        Task<OAuth2GoogleValidatorResponse> Execute(
+        Task<AuthValidationResponse> Execute(
             string idToken, 
             string clientId, 
             string deviceId, 

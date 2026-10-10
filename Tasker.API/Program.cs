@@ -1,4 +1,7 @@
+using System.Text;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Tasker.Application;
 using Tasker.Application.Configuration;
@@ -32,16 +35,62 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.Configure<JwtOptions>(                                                                                                                                           
-    builder.Configuration.GetSection("Jwt"));  
+builder.Services.Configure<JwtOptions>(
+    builder.Configuration.GetSection("Jwt"));
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHttpClient();
 
-builder.Services.AddControllers(options =>
+builder.Services.AddControllers(options => { options.Filters.Add<ExceptionFilter>(); });
+
+builder.Services.AddCors(options =>
 {
-    options.Filters.Add<ExceptionFilter>();
+    options.AddPolicy("CorsPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // Domínios permitidos
+            .AllowAnyHeader() // Cabeçalhos permitidos
+            .AllowAnyMethod()
+            .AllowCredentials(); // Métodos (GET, POST, etc.) permitidos
+    });
 });
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = builder.Configuration["Jwt:Issuer"],
+
+                ValidateAudience = true,
+                ValidAudience = builder.Configuration["Jwt:Audience"],
+
+                ValidateIssuerSigningKey = true,
+                ValidateLifetime = true,
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(
+                        builder.Configuration["Jwt:SigningKey"]!
+                    )
+                )
+            };
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    if (context.Request.Cookies.TryGetValue(
+                            "X-Tasker-Access-Token",
+                            out var token))
+                    {
+                        context.Token = token;
+                    }
+
+                    return Task.CompletedTask;
+                }
+            };
+        }
+    );
+
 
 var app = builder.Build();
 
@@ -51,7 +100,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
+app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

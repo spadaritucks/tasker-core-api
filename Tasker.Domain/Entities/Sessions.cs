@@ -6,6 +6,7 @@ public class Sessions
     public Guid UserId { get; set; }
     public string AccessToken { get; set; }
     public string ExpiresIn { get; set; }
+    
     public string DeviceId { get; set; }
     public string DeviceInfo { get; set; }
     public bool Revoke {get; set;}
