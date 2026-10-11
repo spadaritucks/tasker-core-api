@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Tasker.Domain.Repositories;
 using Tasker.Infrastructure.Database;
 using Tasker.Infrastructure.Repositories;
+using Tasker.Infrastructure.Repositories.Events;
 using Tasker.Infrastructure.Repositories.GoogleCalendarSessions;
 using Tasker.Infrastructure.Repositories.Session;
 
@@ -25,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ISessionRepository, SessionRepository>();
         services.AddScoped<IGoogleCalendarSessionsRepository, GoogleCalendarSessionsRepository>();
+        services.AddScoped<IEventRepository, EventRepository>();
 
         return services;
     }

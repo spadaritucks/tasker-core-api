@@ -11,7 +11,7 @@ public class Events
     public string? Description { get; set; }
     public DateTime DateStart { get; set; }
     public DateTime DateEnd { get; set; }
-    public string GoogleHtmlLink { get; set; }
+    public string? GoogleHtmlLink { get; set; }
     public SyncStatus SyncStatus { get; set; }
     public DateTime CreatedAt { get; set; }
     

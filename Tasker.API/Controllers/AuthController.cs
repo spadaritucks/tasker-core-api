@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Tasker.Application.DTOs.Auth;
 using Tasker.Application.DTOs.Global;
+using Tasker.Application.Exceptions;
 using Tasker.Application.Usecases.AuthMeUsecase;
 using Tasker.Application.Usecases.GoogleCalendarConnectUsecase;
+using Tasker.Application.Usecases.GoogleCalendarStatusUsecase;
 using Tasker.Application.Usecases.GoogleClientUsecase;
 
 namespace Tasker.API.Controllers;
@@ -15,22 +17,25 @@ public class AuthController : BaseApiController
     private readonly IGoogleCalendarConnectUsecase _googleCalendarConnectUsecase;
     private readonly IAuthMeUsecase _authMeUsecase;
     private readonly IConfiguration _configuration;
+    private readonly IGoogleCalendarStatusUsecase  _googleCalendarStatusUsecase;
 
     public AuthController(
         IConfiguration configuration,
         IAuthMeUsecase authMeUsecase,
         IGoogleClientUsecase googleClientUsecase,
-        IGoogleCalendarConnectUsecase googleCalendarConnectUsecase
+        IGoogleCalendarConnectUsecase googleCalendarConnectUsecase,
+        IGoogleCalendarStatusUsecase googleCalendarStatusUsecase
         )
     {
         _configuration = configuration;
         _authMeUsecase = authMeUsecase;
         _googleClientUsecase = googleClientUsecase;
         _googleCalendarConnectUsecase = googleCalendarConnectUsecase;
+        _googleCalendarStatusUsecase = googleCalendarStatusUsecase;
     }
 
     [HttpPost("google")]
-    public async Task<ActionResult<GlobalApiResponseBody<AuthValidationResponse>>> AuthGoogle(
+    public async Task<ActionResult<GlobalApiResponseBody<AuthResponse>>> AuthGoogle(
         [FromBody] AuthGoogleRequest authGoogleRequest, CancellationToken cancellationToken)
     {
         var googleClientId = _configuration["Authentication:Google:ClientId"]
@@ -57,7 +62,7 @@ public class AuthController : BaseApiController
                 }
             );
 
-        return Ok(new AuthResponse
+        return Success(new AuthResponse
         {
             Authenticated = true,
             ExpiresIn = result.ExpiresIn
@@ -66,14 +71,15 @@ public class AuthController : BaseApiController
 
     [HttpGet("me")]
     [Authorize]
-    public async Task<IActionResult> AuthMe(CancellationToken cancellationToken)
+    public async Task<ActionResult<GlobalApiResponseBody<AuthMeResponse>>> AuthMe(
+        CancellationToken cancellationToken)
     {
         var subject = User.FindFirstValue(ClaimTypes.NameIdentifier)
                       ?? User.FindFirstValue("sub");
 
         if (!Guid.TryParse(subject, out var userId))
         {
-            return Unauthorized();
+            throw new AuthException("Sessão do usuário inválida.");
         }
 
         var accessToken = Request.Cookies["X-Tasker-Access-Token"];
@@ -82,7 +88,7 @@ public class AuthController : BaseApiController
         if (string.IsNullOrWhiteSpace(accessToken)
             || !long.TryParse(expirationClaim, out var expirationUnixTime))
         {
-            return Unauthorized();
+            throw new AuthException("Sessão do usuário inválida ou expirada.");
         }
 
         var expiresAt = DateTimeOffset
@@ -95,12 +101,12 @@ public class AuthController : BaseApiController
             expiresAt,
             cancellationToken);
 
-        return Ok(response);
+        return Success(response);
     }
     
     [HttpPost("google-calendar/connect")]
     [Authorize]
-    public async Task<IActionResult> GoogleCalendarConnect(
+    public async Task<ActionResult<GlobalApiResponseBody<GoogleCalendarStatusResponse>>> GoogleCalendarConnect(
         [FromBody] GoogleCalendarConnectRequest request,
         CancellationToken cancellationToken)
     {
@@ -109,7 +115,7 @@ public class AuthController : BaseApiController
         
         if (!Guid.TryParse(subject, out var userId))
         {
-            return Unauthorized();
+            throw new AuthException("Sessão do usuário inválida.");
         }
 
         var result = await _googleCalendarConnectUsecase.Execute(
@@ -119,14 +125,36 @@ public class AuthController : BaseApiController
 
         if (!result)
         {
-            return Unauthorized();
+            throw new AuthException("Não foi possível conectar o Google Calendar.");
         }
         
-        return Ok(new
+        return Success(new GoogleCalendarStatusResponse
         {
-            Connected = true,
+            Connected = true
         });
 
+    }
+
+    [HttpGet("google-calendar/status")]
+    [Authorize]
+    public async Task<ActionResult<GlobalApiResponseBody<GoogleCalendarStatusResponse>>> GoogleCalendarStatus(
+        CancellationToken cancellationToken)
+    {
+        var subject = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                      ?? User.FindFirstValue("sub");
+        
+        if (!Guid.TryParse(subject, out var userId))
+        {
+            throw new AuthException("Sessão do usuário inválida.");
+        }
+
+        var result = await _googleCalendarStatusUsecase.Execute(userId, cancellationToken);
+
+
+        return Success(new GoogleCalendarStatusResponse
+        {
+            Connected = result
+        });
     }
     
 }
