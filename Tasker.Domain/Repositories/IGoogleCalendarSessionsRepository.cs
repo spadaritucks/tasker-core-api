@@ -11,4 +11,8 @@ public interface IGoogleCalendarSessionsRepository
     Task AddAsync(
         GoogleCalendarSessions session,
         CancellationToken cancellationToken = default);
+
+    Task UpdateAsync(
+        GoogleCalendarSessions session,
+        CancellationToken cancellationToken = default);
 }

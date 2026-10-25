@@ -1,27 +1,22 @@
-﻿using Tasker.Domain.Repositories;
+using Tasker.Application.Services;
 
 namespace Tasker.Application.Usecases.GoogleCalendarStatusUsecase;
 
 public class GoogleCalendarStatusUsecase : IGoogleCalendarStatusUsecase
 {
-    private readonly IGoogleCalendarSessionsRepository _googleCalendarSessionsRepository;
+    private readonly GoogleCalendarAccessTokenService _googleCalendarAccessTokenService;
 
     public GoogleCalendarStatusUsecase(
-        IGoogleCalendarSessionsRepository googleCalendarSessionsRepository
-    )
+        GoogleCalendarAccessTokenService googleCalendarAccessTokenService)
     {
-        _googleCalendarSessionsRepository = googleCalendarSessionsRepository;
+        _googleCalendarAccessTokenService = googleCalendarAccessTokenService;
     }
 
     public async Task<bool> Execute(Guid userId, CancellationToken cancellationToken)
     {
-        var userConnect = await _googleCalendarSessionsRepository.GetByUserIdAsync(userId, cancellationToken);
+        var accessToken = await _googleCalendarAccessTokenService
+            .GetValidAccessTokenAsync(userId, cancellationToken);
 
-        if (userConnect == null)
-        {
-            return false;
-        }
-
-        return true;
+        return accessToken is not null;
     }
 }

@@ -11,18 +11,18 @@ namespace Tasker.Application.Usecases.CreateEventUsecase;
 public class CreateEventUsecase : ICreateEventUsecase
 {
     private readonly IEventRepository _eventRepository;
-    private readonly IGoogleCalendarSessionsRepository _googleCalendarSessionsRepository;
+    private readonly GoogleCalendarAccessTokenService _googleCalendarAccessTokenService;
     private readonly GoogleCalendarService _googleCalendarService;
     private readonly ILogger<CreateEventUsecase> _logger;
 
     public CreateEventUsecase(
         IEventRepository eventRepository,
-        IGoogleCalendarSessionsRepository googleCalendarSessionsRepository,
+        GoogleCalendarAccessTokenService googleCalendarAccessTokenService,
         GoogleCalendarService googleCalendarService,
         ILogger<CreateEventUsecase> logger
         )
     {
-        _googleCalendarSessionsRepository = googleCalendarSessionsRepository;
+        _googleCalendarAccessTokenService = googleCalendarAccessTokenService;
         _eventRepository = eventRepository;
         _googleCalendarService = googleCalendarService;
         _logger = logger;
@@ -30,7 +30,8 @@ public class CreateEventUsecase : ICreateEventUsecase
 
     public async Task Execute(CreateEventRequest createEventRequest, Guid userId, CancellationToken cancellationToken)
     {
-        var calendarAccessToken = await _googleCalendarSessionsRepository.GetByUserIdAsync(userId, cancellationToken);
+        var calendarAccessToken = await _googleCalendarAccessTokenService
+            .GetValidAccessTokenAsync(userId, cancellationToken);
 
         var googleCalendarPayload = new CreateGoogleCalendarEventRequest
         {
@@ -49,7 +50,7 @@ public class CreateEventUsecase : ICreateEventUsecase
 
         var request = calendarAccessToken != null
             ? await _googleCalendarService.CreateEvent(
-                calendarAccessToken.AccessToken,
+                calendarAccessToken,
                 googleCalendarPayload,
                 cancellationToken
             )

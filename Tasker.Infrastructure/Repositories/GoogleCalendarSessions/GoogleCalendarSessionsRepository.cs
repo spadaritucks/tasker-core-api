@@ -34,4 +34,12 @@ public class GoogleCalendarSessionsRepository : IGoogleCalendarSessionsRepositor
         await _context.GoogleCalendarSessions.AddAsync(session, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task UpdateAsync(
+        GoogleCalendarSessionEntity session,
+        CancellationToken cancellationToken = default)
+    {
+        _context.GoogleCalendarSessions.Update(session);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }

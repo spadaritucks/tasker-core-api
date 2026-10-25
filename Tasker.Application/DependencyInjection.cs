@@ -24,6 +24,7 @@ public static class DependencyInjection
         services.AddScoped<IGoogleCalendarStatusUsecase, GoogleCalendarStatusUsecase>();
         services.AddScoped<IAuthMeUsecase, AuthMeUsecase>();
         services.AddHttpClient<GoogleCalendarService>();
+        services.AddScoped<GoogleCalendarAccessTokenService>();
         services.AddScoped<JwtTokenService>();  
         return services;
     }
