@@ -30,7 +30,7 @@ public class GoogleCalendarService
         CancellationToken cancellationToken,
         string calendarId = "primary")
     {
-        var requestUri = _configuration["Authentication:Google:CalendarBaseUrl"]
+        var requestUri = _configuration["CalendarBaseUrl"]
                          ?? throw new InfrastructureException(
                              "A URL do Google Calendar não está configurada.");
 
